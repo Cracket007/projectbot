@@ -5,7 +5,7 @@ import openpyxl
 bot = telebot.TeleBot('5323975739:AAGJjjbV3s_ZwWiOmvfqLGkkrwRhVMrzt68')
 
 book = openpyxl.open('price.xlsx', read_only=True)
-sheet = book.active
+sheet = book.activepyt
 
 class User:
     def __init__(self, phone):
