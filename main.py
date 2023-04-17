@@ -1,11 +1,11 @@
 import telebot
 from telebot import types
-import openpyxl
+from dotenv import load_dotenv
+import os
 
-bot = telebot.TeleBot('5323975739:AAGJjjbV3s_ZwWiOmvfqLGkkrwRhVMrzt68')
-
-book = openpyxl.open('price.xlsx', read_only=True)
-sheet = book.active
+load_dotenv()
+api_token = os.getenv('API_TOKEN')
+bot = telebot.TeleBot(api_token)
 
 class User:
     def __init__(self, phone):
@@ -27,36 +27,6 @@ class Check:
 user_dict = {}
 user_dict2 = {}
 
-admin = 455284316
-manager = 455284316
-chat_group = -796330575
-
-
-
-
-@bot.message_handler(commands=['chat'])
-def chat(message):
-    check = user_dict2[message.chat.id]  # открыл словарь проверки
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)  # Создаем клавиатуру для отмены чата
-    markup.add(types.KeyboardButton('Завершить чат'))
-    if check.chat == True: # если уже активирован чат с менеджером
-        bot.send_message(message.chat.id, 'У вас уже активен чат с менеджером, пожалуйста дождитесь ответа ⏳\n\n  Для того чтобы отменить запрос введите напишите "Завершить чат"')
-    if check.chat == False: # если нет активных чатов
-        bot.send_message(message.chat.id, "Здравствуйте! Вы начали чат с нашим менеджером.\n"
-                                          "Введите ваш вопрос и ожидайте ответа.", reply_markup=markup)  # Отправляем сообщение пользователю с приветствием и инструкцией по использованию
-        bot.send_message(chat_id=manager, text="Начат чат с пользователем {} (ID: {}).".format(message.chat.first_name, message.chat.id))  # Отправляем сообщение менеджеру о начале чата
-    check.chat = True
-
-@bot.message_handler(commands=['no_chat'])
-def no_chat(message):
-    check = user_dict2[message.chat.id]  # открыл словарь проверки
-    if check.chat == False:
-        bot.send_message(message.chat.id, 'На данный момент чат с менеджером закрыт, если вы хотетите проконсультироваться по поводу ремонта смартфона\
-     воспользуйтесь командой /chat')
-    elif check.chat == True:
-        bot.send_message(message.chat.id, '    Чат  закрыт!✅ \n\n /start')
-    check.chat = False
-
 @bot.message_handler(commands=['start'])
 def start(message):
     user_dict2[message.chat.id] = Check(message.text)  # создал словарь проверки
@@ -69,93 +39,14 @@ def start(message):
     status = types.KeyboardButton(text="Узнать статус заказа", request_contact=True)
     interes = types.KeyboardButton('Посмотреть/почитать что-нибудь интересненькое')
     murkup.add(sloman, status)
-    privet = f'<b>Приветсвтую {message.from_user.first_name}</b>,\n Я бот сервисного центра по ремонту смартфонов в Одессе!\n\n<b>С моей помощью можно:</b>\n\n-Получить консультаци. и узнать стоимость ремонта устройства, оформить заявку на ремонт\n\n-Проверить статус заказа если уже оставили на ремонт устройство\n\n-Узнать много полезного\n\nДля консультации с менеджером введите команду /chat'
+    privet = '<b>Я бот сервісного центру з ремонту смартфонів у Одесі!</b>\n\n<b>За моєю допомогою можна:</b>\n\n-Отримати консультацію та дізнатися вартість ремонту пристрою, оформити заявку на ремонт\n\n-Перевірити статус замовлення, якщо вже залишили пристрій на ремонт\n\n-Дізнатися багато корисного\n\nДля консультації з менеджером залиште заявку боту командою'
     bot.send_message(message.chat.id, privet, reply_markup=murkup, parse_mode='html')
     print(message.chat.id)
 
 @bot.message_handler(content_types=['text'])
-# def process_user_msg(message):
-#     # Если пользователь нажимает кнопку "Завершить чат", завершаем обработку сообщений
-#     if message.text == 'Завершить чат':
-#         bot.send_message(chat_id=message.chat.id, text="Чат завершен. Спасибо, что обратились к нам!")
-#         return
-#
-#     # Отправляем сообщение менеджеру
-#     bot.send_message(chat_id=manager, text="Сообщение от пользователя {} (ID: {}):\n{}".format(message.chat.first_name, message.chat.id, message.text))
-#
-#     # Регистрируем следующий обработчик для получения ответа от менеджера
-#     bot.send_message(chat_id=message.chat.id, text="Ожидайте ответа от менеджера...")
-#     bot.register_next_step_handler_by_chat_id(chat_id=manager, message_cb=process_manager_msg, text=message.text)
-#
-# def process_manager_msg(message):
-#     # Отправляем ответ пользователю
-#     bot.send_message(chat_id=message.text.split('(ID: ')[1].split('):\n')[0], text="Ответ от менеджера:\n{}".format(message.text.split(':\n')[1]))
-#
-#     # Регистрируем следующий обработчик для получения следующего сообщения от пользователя
-#     bot.register_next_step_handler(message.chat.id, callback=process_user_msg)
-
-def eho(message):
+def text(message):
     try:
-        print(message.text)
-        user_dict[message.chat.id] = User(message.text)  # cоздание словарь
-        check = user_dict2[message.chat.id]  # открыл словарь проверки
-        if check.chat == True:
-            if manager != message.chat.id:   #условия для пользователя с откртым чатом
-                bot.send_message(manager, message.chat.id)
-                bot.send_message(manager, f'{message.from_user.first_name}: {message.text}')
-                if check.problem == None:
-                    bot.send_message(message.chat.id, '    Менеджер получил ваше сообщение, пожалуйста ожидайте ответа.\n    График работы "Пн-Сб с10:00 до 18:00"\n\n\
-                    Чтобы прекратить чат, введите команду /no_chat')
-                    check.problem = message.text
-            if manager == message.chat.id: #условия для менеджера с открытым чатом
-                if message.text.lower() == 'закрыть':
-                    check = user_dict2[check.user]
-                    check.chat = False
-                    bot.send_message(message.chat.id, f'Чат с {check.user} отключен')
-                elif message.text.lower() == 'текущий чат':
-                    bot.send_message(manager, f'Чат с {check.user}')
-                else:
-                    try:
-                        bot.send_message(check.user, message.text)
-                        bot.send_message(message.chat.id, f'Отправлено: {check.user}\n{message.text}')
-                    except:
-                        bot.send_message(message.chat.id, 'Некорректный id пользователя')
-
-        elif message.chat.id == manager: #меню менеджера
-            if message.text != None:
-                 try:
-                    if int(message.text) < int('1000000'):
-                        bot.send_message(message.chat.id, 'Слишком короткий id')
-                    elif int(message.text) > int('10000000000'):
-                        bot.send_message(message.chat.id, 'Слишком длинный id')
-                    else:
-                        int(message.text)
-                        check.user = message.text
-                        check.chat = True
-                        bot.send_message(message.chat.id, f'Чат с {check.user} открыт')
-                 except:
-                    bot.send_message(message.chat.id, '     Введите id пользователя')
-            elif message.text.lower() == 'текущий чат':
-                bot.send_message(manager, f'Чат с {check.user}')
-            elif message.text.lower() == 'Закрыть чат':
-                bot.send_message(manager, 'Чат с пользователем закрыт')
-                bot.send_message(check.user, 'Чат закрыт')
-                check.chat = False
-            elif message.text == type(int):
-                try:
-                    check.user = int(message.text)
-                    bot.send_message(manager, f'Чат с {check.user} открыт')
-                except:
-                    bot.send_message(manager, 'Что-то не так')
-
-
-
-
-
-
-
-
-        elif message.text.lower() == 'ремонт':
+        if message.text.lower() == 'ремонт':
             check.model = None
             check.problem = None
             check.chapter = 'castom'
@@ -172,75 +63,7 @@ def eho(message):
             oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Устройство Oppo')
             markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
             bot.send_photo(message.chat.id, photo, reply_markup=markup)
-        elif message.text.lower() == 'у меня сломался телефон':
-            check.model = None
-            check.chapter = None
 
-            murkup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-            cons = types.KeyboardButton('Получить консультацию')
-            remont = types.KeyboardButton('Ремонт')
-            murkup.add(cons, remont)
-            bot.send_message(message.chat.id,
-                             'Напишите "Ремонт" если хотите оставить заявку на ремонт смартфона. \nИли выберите "Получить консультацию" (рекомендуется)',
-                             reply_markup=murkup, parse_mode='html')
-        elif message.text.lower() == 'получить консультацию':
-            markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-            connector = types.InlineKeyboardButton('Не заряжается')
-            voda = types.InlineKeyboardButton('Упал в воду')
-            gluk = types.KeyboardButton('Глючит, зависает')
-            razbit = types.KeyboardButton('Разбит дисплей, трещины')
-            zvyk = types.KeyboardButton('Проблемы со звуком')
-            razryazh = types.KeyboardButton('Быстро разряжается')
-            drugoe = types.KeyboardButton('Другое')
-            markup.add(connector, voda, gluk, razbit, zvyk, razryazh, drugoe)
-            problem = f'Проблема которую вы наблюдаете?'
-
-            bot.send_message(message.chat.id, problem, reply_markup=markup)
-        elif message.text.lower() == 'не заряжается':
-            markup = types.InlineKeyboardMarkup(row_width=2)
-            item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_connector')
-            markup.add(item_next)
-            bot.send_message(message.chat.id,
-                             '*Проблемы с зарядкой могут быть сязаны с:*\n*а:* Неисправен кабель \n*б:* Неисправен блочёк\n*в: *Забился, загрязнился разъем в телефоне\n*г: *Cломался / расшатался разъем',
-                             parse_mode='markdown', reply_markup=markup)
-        elif message.text.lower() == 'упал в воду':
-            markup = types.InlineKeyboardMarkup()
-            item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_voter')
-            markup.add(item_next)
-            bot.send_message(message.chat.id,
-                             'Если в ваш телефон попала влага, нужно его  немедленно разобрать и промыть плату специальной жидкостью не оставляющей никаких остатков. При этом не повредить подсветку дисплея, микрофоны и камеры. Вообщем чистку могут выполнить только в сервисном центре.',
-                             reply_markup=markup)
-        elif message.text.lower() == 'глючит, зависает':
-            markup = types.InlineKeyboardMarkup()
-            item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_buggy')
-            markup.add(item_next)
-
-            bot.send_message(message.chat.id,
-                             'Что делать, если телефон зависает?\n[ПРИЧИНЫ ЗАВИСАНИЯ ТЕХНИКИ](https://teletype.in/@andrei_iph/P_-KoDBU2Sr)',
-                             parse_mode='markdown', reply_markup=markup)
-        elif message.text.lower() == 'разбит дисплей, трещины':
-            markup = types.InlineKeyboardMarkup(row_width=1)
-            option1 = types.InlineKeyboardButton(text='Есть трещины но пользоваться можно',
-                                                 callback_data='consultation_broken_option1')
-            option2 = types.InlineKeyboardButton(text='Нет трещин но черный экран',
-                                                 callback_data='consultation_broken_option2')
-            option3 = types.InlineKeyboardButton(text='Разбит полность пользоваться невозможно',
-                                                 callback_data='consultation_broken_option3')
-            markup.add(option1, option2, option3)
-
-            bot.send_message(message.chat.id,
-                             'Если так случилось что экран вашего смрфона пострадал - не унывайте, мы поможем вам это исправить в кратчайшие сроки но для начала нужно понимать насколько сильный ущерб принял на себя гаджет',
-                             reply_markup=markup)
-        elif message.text.lower() == 'проблемы со звуком':
-            markup = types.InlineKeyboardMarkup(row_width=1)
-            item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_sound')
-            markup.add(item_next)
-
-            bot.send_message(message.chat.id, 'Прохо слышите собеседника?\nИли вас не слишит собеседник?\n   Важно правильно ответить на этот вопрос так как в первом случае неисправен спикер(разговорный динамик) во втором микрофон.\n\
-                В современном смарфоне встроено порядка 3-4х микрофонов и несколько динамиков как правило один снизу и один  возможно двухконтурный сверху если у вас стерео звук на телефоне.\n\
-                Сам динамик очень редко выходит из строя, физически навредить ему можно либо проткнув мембрану иголкой либо мелкая металическая стружка. В противном случае достаточно правильно прочистить защитную решетку.',
-                             reply_markup=markup)
-        elif message.text.lower() == 'другое':
             bot.send_message(message.chat.id, 'Дя того чтобы начать чат с менеджером введите команду /chat')
         elif check.model != None:
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
