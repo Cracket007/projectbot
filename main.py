@@ -1,11 +1,25 @@
 import telebot
 from telebot import types
 from dotenv import load_dotenv
+import openpyxl
 import os
+
+book = openpyxl.open('price.xlsx', read_only=True)
+sheet = book.active
 
 load_dotenv()
 api_token = os.getenv('API_TOKEN')
 bot = telebot.TeleBot(api_token)
+
+# import requests
+#
+# bot_token = 'api_token'
+# bot_url = 'https://your_bot_url.com'  # замените на свой URL-адрес
+#
+# telegram_url = f"https://api.telegram.org/bot{api_token}/setWebhook?url={bot_url}"
+# response = requests.post(telegram_url)
+# print(response.text)
+
 
 class User:
     def __init__(self, phone):
@@ -26,7 +40,7 @@ class Check:
 
 user_dict = {}
 user_dict2 = {}
-
+manager = 455284316
 @bot.message_handler(commands=['start'])
 def start(message):
     user_dict2[message.chat.id] = Check(message.text)  # создал словарь проверки
@@ -35,64 +49,151 @@ def start(message):
     check.model = None
 
     murkup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    sloman = types.KeyboardButton('У меня сломался телефон')
-    status = types.KeyboardButton(text="Узнать статус заказа", request_contact=True)
-    interes = types.KeyboardButton('Посмотреть/почитать что-нибудь интересненькое')
-    murkup.add(sloman, status)
-    privet = '<b>Я бот сервісного центру з ремонту смартфонів у Одесі!</b>\n\n<b>За моєю допомогою можна:</b>\n\n-Отримати консультацію та дізнатися вартість ремонту пристрою, оформити заявку на ремонт\n\n-Перевірити статус замовлення, якщо вже залишили пристрій на ремонт\n\n-Дізнатися багато корисного\n\nДля консультації з менеджером залиште заявку боту командою'
+    consultation = types.KeyboardButton('Отримати консультаiю')
+    broken = types.KeyboardButton('Ремонт')
+    murkup.add(consultation, broken)
+    privet = '<b>Я бот сервісного центру з ремонту смартфонів у Одесі!</b>\n\n<b>За моєю допомогою можна:</b>\n\n-Отримати консультацію та дізнатися вартість ремонту пристрою\n-Оформити заявку на ремонт\n\nДля консультації з менеджером залиште заявку на ремонт'
     bot.send_message(message.chat.id, privet, reply_markup=murkup, parse_mode='html')
     print(message.chat.id)
 
 @bot.message_handler(content_types=['text'])
 def text(message):
-    try:
-        if message.text.lower() == 'ремонт':
-            check.model = None
-            check.problem = None
-            check.chapter = 'castom'
+    check = user_dict2[message.chat.id]
+    # try:
+    if message.text.lower() == 'ремонт':
+        check.model = None
+        check.problem = None
+        check.chapter = 'castom'
 
-            user = user_dict[message.chat.id]
-            user.model = None
+        # user = user_dict[message.chat.id]
+        # user.model = None
 
-            photo = open('cartinios/repair.jpg', 'rb')
-            markup = types.InlineKeyboardMarkup(row_width=1)
-            samsung = types.InlineKeyboardButton(text='Samsung', callback_data='Устройство Samsung')
-            apple = types.InlineKeyboardButton(text='Apple', callback_data='Устройство Apple')
-            huawei = types.InlineKeyboardButton(text='Huawei', callback_data='Устройство Huawei')
-            xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Устройство Xiaomi')
-            oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Устройство Oppo')
-            markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
-            bot.send_photo(message.chat.id, photo, reply_markup=markup)
+        photo = open('cartinios/repair.jpg', 'rb')
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        samsung = types.InlineKeyboardButton(text='Samsung', callback_data='Пристрiй Samsung')
+        apple = types.InlineKeyboardButton(text='Apple', callback_data='Пристрiй Apple')
+        huawei = types.InlineKeyboardButton(text='Huawei', callback_data='Пристрiй Huawei')
+        xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Пристрiй Xiaomi')
+        oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Пристрiй Oppo')
+        markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
+        bot.send_photo(message.chat.id, photo, reply_markup=markup)
 
-            bot.send_message(message.chat.id, 'Дя того чтобы начать чат с менеджером введите команду /chat')
-        elif check.model != None:
-            markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-            back = types.KeyboardButton('Ремонт')
-            contact = types.KeyboardButton('🖊️Подтвердить заказ', request_contact=True)
-            markup.add(back, contact)
+    elif message.text.lower() == 'отримати консультаiю':
+        markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+        connector = types.InlineKeyboardButton('Не заряджається')
+        voda = types.InlineKeyboardButton('Впав у воду')
+        gluk = types.KeyboardButton('Глючить, зависає')
+        razbit = types.KeyboardButton('Розбитий дисплей, тріщини')
+        zvyk = types.KeyboardButton('Проблеми зі звуком')
+        razryazh = types.KeyboardButton('Швидко розряджається')
+        drugoe = types.KeyboardButton('Інше')
+        markup.add(connector, voda, gluk, razbit, zvyk, razryazh, drugoe)
+        problem = f'Проблема, яку ви спостерігаєте?'
 
-            check.problem = message.text #записали проблему
-            check.order = True
+        bot.send_message(message.chat.id, problem, reply_markup=markup)
+    elif message.text.lower() == 'не заряджається':
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        item_next = types.InlineKeyboardButton(text='Далі', callback_data='consultation_connector')
+        markup.add(item_next)
+        bot.send_message(message.chat.id, "Проблеми з зарядкою можуть бути повя'зані з:\nа: Несправний кабель \nб: Несправний блок живлення\nв: Забився, забруднився роз'єм в телефоні\nг: Сломався / розійшовся роз'єм", parse_mode = 'markdown', reply_markup = markup)
+    elif message.text.lower() == 'упав в воду':
+        markup = types.InlineKeyboardMarkup()
+        item_next = types.InlineKeyboardButton(text='Далі', callback_data='consultation_voter')
+        markup.add(item_next)
+        bot.send_message(message.chat.id,
+                         'Якщо до вашого телефону потрапила волога, його необхідно негайно розібрати та промити плату спеціальною рідиною, яка не залишає жодних залишків. При цьому не пошкодити підсвічування дисплея, мікрофони та камеру. Взагалі чистку можуть виконати тільки в сервісному центрі.',
+                         reply_markup=markup)
+    elif message.text.lower() == 'глючить, зависає':
+        markup = types.InlineKeyboardMarkup()
+        item_next = types.InlineKeyboardButton(text='Далі', callback_data='consultation_buggy')
+        markup.add(item_next)
 
-            bot.send_message(message.chat.id, f'Устройство: {check.model} 📱 \n\n🛠 {check.problem}\n\n   Пришлите сообщение еще раз если хотите изменить описание проблемы\n    Для того чтобы отправить запрос менеджеру, поделитесь номером телефона нажав кнопкку "Подтвердить". Или отправте контакт', reply_markup=markup)
-        elif check.chapter == True:
-            bot.send_message(manager, message.chat.id)
-            bot.send_message(manager, message.text)
-            bot.send_message(message.chat.id, 'Ожидайте ответа менеджера в ближайшее время \n\nКоманда /start')
-        elif check.chapter == None:
-            photo = open('cartinios/keyboard.jpg', 'rb')
-            bot.send_photo(message.chat.id, photo, 'Пожалуйста воспользуйтесь встроенной клаиватурой \n\nКоманда /start')
-        elif check.chapter == 'castom':  #если человек вводит модель вручную в разделе "Ремонт"
-            check.model = message.text #записал модель
+        bot.send_message(message.chat.id,
+                         'Що робити, якщо телефон зависає?\n[ПРИЧИНИ ЗАВИСАННЯ ТЕХНІКИ](https://teletype.in/@andrei_iph/P_-KoDBU2Sr)',
+                         parse_mode='markdown', reply_markup=markup)
+    elif message.text.lower() == 'розбитий дисплей, тріщини':
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        option1 = types.InlineKeyboardButton(text='Є тріщини, але користуватися можна',
+                                             callback_data='consultation_broken_option1')
+        option2 = types.InlineKeyboardButton(text='Немає тріщин, але чорний екран',
+                                             callback_data='consultation_broken_option2')
+        option3 = types.InlineKeyboardButton(text='Розбитий повністю, користуватися неможливо',
+                                             callback_data='consultation_broken_option3')
+        markup.add(option1, option2, option3)
 
-            markup = types.InlineKeyboardMarkup()  # клавиатура да нет
-            yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
-            no = types.InlineKeyboardButton(text='Нет', callback_data='no')
-            markup.add(yes, no)
+        bot.send_message(message.chat.id,
+                         'Если так случилось что экран вашего смрфона пострадал - не унывайте, мы поможем вам это исправить в кратчайшие сроки но для начала нужно понимать насколько сильный ущерб принял на себя гаджет',
+                         reply_markup=markup)
+    elif message.text.lower() == 'проблемы со звуком':
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_sound')
+        markup.add(item_next)
 
-            bot.send_message(message.chat.id, f'Ваш телефон "{check.model}"?', reply_markup=markup)
-    except:
-        bot.send_message(message.chat.id, 'Воспользуйтесь меню /start')
+        bot.send_message(message.chat.id, 'Прохо слышите собеседника?\nИли вас не слишит собеседник?\n   Важно правильно ответить на этот вопрос так как в первом случае неисправен спикер(разговорный динамик) во втором микрофон.\n\
+                    В современном смарфоне встроено порядка 3-4х микрофонов и несколько динамиков как правило один снизу и один  возможно двухконтурный сверху если у вас стерео звук на телефоне.\n\
+                    Сам динамик очень редко выходит из строя, физически навредить ему можно либо проткнув мембрану иголкой либо мелкая металическая стружка. В противном случае достаточно правильно прочистить защитную решетку.',
+                         reply_markup=markup)
+    elif message.text.lower() == 'другое':
+        bot.send_message(message.chat.id, 'Дя того чтобы начать чат с менеджером введите команду /chat')
+    elif check.model != None:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        back = types.KeyboardButton('Ремонт')
+        contact = types.KeyboardButton('🖊️Подтвердить заказ', request_contact=True)
+        markup.add(back, contact)
+
+        check.problem = message.text  # записали проблему
+        check.order = True
+
+        bot.send_message(message.chat.id,
+                         f'Устройство: {check.model} 📱 \n\n🛠 {check.problem}\n\n   Пришлите сообщение еще раз если хотите изменить описание проблемы\n    Для того чтобы отправить запрос менеджеру, поделитесь номером телефона нажав кнопкку "Подтвердить". Или отправте контакт',
+                         reply_markup=markup)
+    elif check.chapter == True:
+        bot.send_message(manager, message.chat.id)
+        bot.send_message(manager, message.text)
+        bot.send_message(message.chat.id, 'Ожидайте ответа менеджера в ближайшее время \n\nКоманда /start')
+    elif check.chapter == None:
+        photo = open('cartinios/keyboard.jpg', 'rb')
+        bot.send_photo(message.chat.id, photo, 'Пожалуйста воспользуйтесь встроенной клаиватурой \n\nКоманда /start')
+    elif check.chapter == 'castom':  # если человек вводит модель вручную в разделе "Ремонт"
+        check.model = message.text  # записал модель
+
+        markup = types.InlineKeyboardMarkup()  # клавиатура да нет
+        yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
+        no = types.InlineKeyboardButton(text='Нет', callback_data='no')
+        markup.add(yes, no)
+
+        bot.send_message(message.chat.id, f'Ваш телефон "{check.model}"?', reply_markup=markup)
+
+    elif check.model != None:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        back = types.KeyboardButton('Ремонт')
+        contact = types.KeyboardButton('🖊️Подтвердить заказ', request_contact=True)
+        markup.add(back, contact)
+
+        check.problem = message.text #записали проблему
+        check.order = True
+
+        bot.send_message(message.chat.id, f'Устройство: {check.model} 📱 \n\n🛠 {check.problem}\n\n   Пришлите сообщение еще раз если хотите изменить описание проблемы\n    Для того чтобы отправить запрос менеджеру, поделитесь номером телефона нажав кнопкку "Подтвердить". Или отправте контакт', reply_markup=markup)
+    elif check.chapter == True:
+        bot.send_message(manager, message.chat.id)
+        bot.send_message(manager, message.text)
+        bot.send_message(message.chat.id, 'Ожидайте ответа менеджера в ближайшее время \n\nКоманда /start')
+
+    elif check.chapter == None:
+        photo = open('cartinios/keyboard.jpg', 'rb')
+        bot.send_photo(message.chat.id, photo, 'Пожалуйста воспользуйтесь встроенной клаиватурой \n\nКоманда /start')
+
+    elif check.chapter == 'castom':  #если человек вводит модель вручную в разделе "Ремонт"
+        check.model = message.text #записал модель
+
+        markup = types.InlineKeyboardMarkup()  # клавиатура да нет
+        yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
+        no = types.InlineKeyboardButton(text='Нет', callback_data='no')
+        markup.add(yes, no)
+
+        bot.send_message(message.chat.id, f'Ваш телефон "{check.model}"?', reply_markup=markup)
+    # except:
+    #     bot.send_message(message.chat.id, 'Воспользуйтесь меню /start')
 
 
 
@@ -102,14 +203,14 @@ def repair_call(call):
     check.chapter = 'castom'
     photo = open('cartinios/repair.jpg', 'rb')
     markup = types.InlineKeyboardMarkup(row_width=1)
-    samsung = types.InlineKeyboardButton(text='Samsung', callback_data='Устройство Samsung')
-    apple = types.InlineKeyboardButton(text='Apple', callback_data='Устройство Apple')
-    huawei = types.InlineKeyboardButton(text='Huawei', callback_data='Устройство Huawei')
-    xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Устройство Xiaomi')
-    oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Устройство Oppo')
+    samsung = types.InlineKeyboardButton(text='Samsung', callback_data='Пристрiй Samsung')
+    apple = types.InlineKeyboardButton(text='Apple', callback_data='Пристрiй Apple')
+    huawei = types.InlineKeyboardButton(text='Huawei', callback_data='Пристрiй Huawei')
+    xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Пристрiй Xiaomi')
+    oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Пристрiй Oppo')
     markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
-    bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
-                                 message_id=call.message.message_id, reply_markup=markup)
+    # bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
+    #                              # message_id=call.message.message_id, reply_markup=markup
 @bot.callback_query_handler(func=lambda call: call.data.startswith('Устройство'))
 def func_phone(call):
     markup = types.InlineKeyboardMarkup()
@@ -166,6 +267,9 @@ def func_phone(call):
         bot.register_next_step_handler(xiaomi)
     bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
                            message_id=call.message.message_id, reply_markup=markup)  # отправил фото с клавиатурой
+
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('xiaomi'))
 def phone_xiaomi(call):
     markup = types.InlineKeyboardMarkup()
@@ -475,45 +579,40 @@ def phone_huawei(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('consultation'))
 def anwer(call):
     markup = types.InlineKeyboardMarkup(row_width=1)
-    if call.data == 'consultation_connector':
-        item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_connector_next1')
+    if call.data == "consultation_connector":
+        item_next = types.InlineKeyboardButton(text="Далі", callback_data="consultation_connector_next1")
         markup.add(item_next)
         bot.send_message(call.from_user.id,
-                         'Проверять кабель или блок на наличие внешних повреждений не имеет смысла так как он может выйти из строя будучи внешне в идеальном состоянии \
-                         \nПопробуйте другой *заведомо исправный кабель* который заряжает другой телефон без проблем и перебоев',
-                         parse_mode='markdown', reply_markup=markup)
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id,
-                              text='*Проблемы с зарядкой могут быть сязаны с:*\n*а:* Неисправен кабель \n*б:* Неисправен блочёк\n*в: *Забился, загрязнился разъем в телефоне\n*г: *Cломался / расшатался разъем',
-                              parse_mode='markdown')
+                     "Перевіряти кабель або блок на наявність зовнішніх пошкоджень не має сенсу, так як він може вийти з ладу бувши зовні в ідеальному стані\nСпробуйте інший надійно справний кабель, який заряджає інший телефон без проблем та перебоїв",
+                     parse_mode="markdown", reply_markup=markup)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                          text="Проблеми з зарядкою можуть бути пов'язані з:\nа: Несправний кабель\nб: Несправний блок\n*в: Забився, забруднився роз'єм в телефоні\nг: *Cломався / розшатався роз'єм",
+                          parse_mode="markdown")
     elif call.data == 'consultation_connector_next1':
         photo = open('cartinios/cleaning.jpg', 'rb')
         item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_connector_next2')
         markup.add(item_next)
 
-        bot.send_photo(call.from_user.id, photo,
-                         'Если разъем засорился (это не всегда видно невооруженным глазом) не рекомендуется выполнять чистку *самостоятельно!*\
-                          \nВнутри находятся тонкие контакты которые легко повредить.\nСтоимость внешней чистки разъема не учитывается при любом из видов ремонта. \
-                          \nВ нашем сервисном центре данная процедура выполняется с использованием изопропилового спирта (не оставляющий остатков), пинцета, щетки и умеренного воздушного давления. \
-                          \nПосле чистки разъем будет выглядить внутри как новый но даже это не обязывает его исправно работать, ведь если разрушена пайка со внутренней стороны, без замены не обойтись(',
-                         parse_mode='markdown', reply_markup=markup)
+        bot.send_photo(call.from_user.id, photo, "Якщо роз'єм забився (це не завжди видно невідборним оком), не рекомендується виконувати його чищення самостійно!\n\
+    Всередині розташовані тонкі контакти, які легко пошкодити.\n    Вартість зовнішньої чистки роз'єму не враховується при будь-якому виді ремонту.\n   У нашому сервісному центрі цю процедуру виконують з використанням ізопропілового спирту (не залишає залишків), пінцета, щітки та помірного повітряного тиску.\n    Після чищення роз'єм буде виглядати всередині як новий, але навіть це не гарантує його правильної роботи, адже якщо знищена пайка з внутрішньої сторони, без заміни не обійтись.",
+                       parse_mode='markdown', reply_markup=markup)
+
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
-                              text='Проверять кабель или блок на наличие внешних повреждений не имеет смысла так как он может выйти из строя будучи внешне в идеально состоянии \
-                              \nПопробуйте другой <b><u>заведомо исправный кабель</u></b> который заряжает другой телефон без проблем и перебоев',
+                              text="Перевіряти кабель або блок на наявність зовнішніх пошкоджень не має сенсу, так як він може вийти з ладу бувши зовні в ідеальному стані. \nСпробуйте інший <b><u>надійно справний кабель</u></b>, який заряджає інший телефон без проблем та перебоїв.",
                               parse_mode='html')
     elif call.data == 'consultation_connector_next2':
         photo = open('cartinios/cleaning.jpg', 'rb')
 
         bot.delete_message(call.message.chat.id, call.message.message_id)
-        bot.send_photo(call.from_user.id, photo,
-                       'Если разъем засорился (это не всегда видно невооруженным глазом) не рекомендуется выполнять чистку *самостоятельно!*\
-                        \nВнутри находятся тонкие контакты которые легко повредить.\nСтоимость внешней чистки разъема не учитывается при любом из видов ремонта. \
-                        \nВ нашем сервисном центре данная процедура выполняется с использованием изопропилового спирта (не оставляющий остатков), пинцета, щетки и умеренного воздушного давления. \
-                        \nПосле чистки разъем будет выглядить внутри как новый но даже это не обязывает его исправно работать, ведь если разрушена пайка со внутренней стороны, без замены не обойтись(',
+        bot.send_photo(call.from_user.id, photo,"Якщо роз'єм забився (це не завжди видно невідборним оком), не рекомендується виконувати його чищення самостійно!"
+                                                "\n    Всередині розташовані тонкі контакти, які легко пошкодити."
+                                                "\n    Вартість зовнішньої чистки роз'єму не враховується при будь-якому виді ремонту."
+                                                "\n   У нашому сервісному центрі цю процедуру виконують з використанням ізопропілового спирту (не залишає залишків), пінцета, щітки та помірного повітряного тиску."
+                                                "\n    Після чищення роз'єм буде виглядати всередині як новий, але навіть це не гарантує його правильної роботи, адже якщо знищена пайка з внутрішньої сторони, без заміни не обійтись.",
                        parse_mode='markdown')
         bot.send_message(call.from_user.id,
-                         'Если же чистка не помогла, нужно менять разъем. Для замены в нашем сц напишите боту «ремонт» и он предложить вам создать заявку на ремонт\n\n/start')
+                         "Якщо очищення не допомогло, потрібно замінити роз'єм. Щоб замінити роз'єм, напишіть боту 'ремонт', і він запропонує створити заявку на ремонт у нашому сервісному центрі.\n\n/start")
 
     elif call.data == 'consultation_voter':
         item_next = types.InlineKeyboardButton(text='Дальше', callback_data='consultation_voter_next1')
