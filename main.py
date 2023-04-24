@@ -10,14 +10,7 @@ sheet = book.active
 load_dotenv()
 api_token = os.getenv('API_TOKEN')
 bot = telebot.TeleBot(api_token)
-# import requests
-#
-# bot_token = 'api_token'
-# bot_url = 'https://your_bot_url.com'  # замените на свой URL-адрес
-#
-# telegram_url = f"https://api.telegram.org/bot{api_token}/setWebhook?url={bot_url}"
-# response = requests.post(telegram_url)
-# print(response.text)
+
 class User:
     def __init__(self, phone):
         self.phone = phone
@@ -25,6 +18,8 @@ class User:
         self.problem = 5
         self.check = None
         self.money = 0
+        self.order =False
+
 class Check:
     def __init__(self, chapter):
         self.chapter = False
@@ -35,12 +30,11 @@ class Check:
         self.chat = False
 
 user_dict = {}
-user_dict2 = {}
 manager = 455284316
 @bot.message_handler(commands=['start'])
 def start(message):
-    user_dict2[message.chat.id] = Check(message.text)  # создал словарь проверки
-    check = user_dict2[message.chat.id]  # открыл словарь проверки
+    user_dict[message.chat.id] = Check(message.text)  # создал словарь проверки
+    check = user_dict[message.chat.id]  # открыл словарь проверки
     check.chapter = None
     check.model = None
 
@@ -54,9 +48,10 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def text(message):
-    check = user_dict2[message.chat.id]
     try:
+        check = user_dict[message.chat.id]
         if message.text.lower() == 'ремонт':
+            user_dict[message.chat.id] = User(check)
             check.model = None
             check.problem = None
             check.chapter = 'castom'
@@ -72,7 +67,8 @@ def text(message):
             xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Пристрiй Xiaomi')
             oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Пристрiй Oppo')
             markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
-            bot.send_photo(message.chat.id, photo, reply_markup=markup)
+            start_message = bot.send_photo(message.chat.id, photo, reply_markup=markup)
+
 
         elif message.text.lower() == 'отримати консультацiю':
             markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -198,7 +194,7 @@ def text(message):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('repair'))
 def repair_call(call):
-    check = user_dict2[call.message.chat.id]  # открыл словарь проверки
+    check = user_dict[call.message.chat.id]  # открыл словарь проверки
     check.chapter = 'castom'
     photo = open('cartinios/repair.jpg', 'rb')
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -208,14 +204,16 @@ def repair_call(call):
     xiaomi_redmi = types.InlineKeyboardButton(text='Xiaomi Redmi', callback_data='Пристрiй Xiaomi')
     oppo_realme = types.InlineKeyboardButton(text='Oppo Realme', callback_data='Пристрiй Oppo')
     markup.add(samsung, huawei, xiaomi_redmi, oppo_realme, apple)
-    # bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
-    #                              # message_id=call.message.message_id, reply_markup=markup
-@bot.callback_query_handler(func=lambda call: call.data.startswith('Устройство'))
+    bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+@bot.callback_query_handler(func=lambda call: call.data.startswith('Пристрiй'))
 def func_phone(call):
+    user = user_dict[call.message.chat.id]
+    user.phone = call.data
     markup = types.InlineKeyboardMarkup()
     back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='repair')
+    user.phone = call.data
     photo = open(f'cartinios/{call.data}.jpg', 'rb')
-    if call.data == 'Устройство Samsung':
+    if call.data == 'Пристрiй Samsung':
         markup = types.InlineKeyboardMarkup(row_width=1)
         a = types.InlineKeyboardButton(text='Galaxy A', callback_data='galaxy a')
         s = types.InlineKeyboardButton(text='Galaxy S', callback_data='galaxy s')
@@ -223,7 +221,7 @@ def func_phone(call):
         j = types.InlineKeyboardButton(text='Galaxy J', callback_data='galaxy j')
         m = types.InlineKeyboardButton(text='Galaxy M', callback_data='galaxy m')
         markup.add(a, s, note, j, m, back)
-    elif call.data == 'Устройство Huawei':
+    elif call.data == 'Пристрiй Huawei':
         nova = types.InlineKeyboardButton(text='Nova', callback_data='huawei nova')
         hy = types.InlineKeyboardButton(text='Y', callback_data='huawei y')
         honor = types.InlineKeyboardButton(text='Honor', callback_data='huawei honor')
@@ -231,12 +229,12 @@ def func_phone(call):
         mate = types.InlineKeyboardButton(text='Mate', callback_data='huawei mate')
         other = types.InlineKeyboardButton(text='Enjoy', callback_data='huawei enjoy')
         markup.add(nova, hy, honor, hp, other, back)
-    elif call.data == 'Устройство Xiaomi':
+    elif call.data == 'Пристрiй Xiaomi':
         mi = types.InlineKeyboardButton(text='MI', callback_data='xiaomi mi')
         redmi = types.InlineKeyboardButton(text='Redmi', callback_data='xiaomi redmi')
         poco = types.InlineKeyboardButton(text='Poco', callback_data='xiaomi poco')
         markup.add(mi, redmi, back)
-    elif call.data == 'Устройство Apple':
+    elif call.data == 'Пристрiй Apple':
         iph_6s = types.InlineKeyboardButton(text='6s', callback_data='2')
         iph_6s_plus = types.InlineKeyboardButton(text='6s Plus', callback_data='3')
         iph_7 = types.InlineKeyboardButton(text='7', callback_data='4')
@@ -261,7 +259,7 @@ def func_phone(call):
         markup.add(iph_6s, iph_6s_plus, iph_7, iph_7_Plus, iph_8, iph_8_plus, iph_x, iph_xs, iph_xs_max, iph_xr, iph_11,
                    iph_11_pro, iph_11_pro_max, iph_12_mini, iph_12, iph_12_pro, iph_12_pro_max, iph_13_mini, iph_13,
                    iph_13_pro, iph_13_pro_max, back)
-    elif call.data == 'Устройство Oppo':
+    elif call.data == 'Пристрiй Oppo':
 
         bot.register_next_step_handler(xiaomi)
     bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
@@ -271,8 +269,10 @@ def func_phone(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('xiaomi'))
 def phone_xiaomi(call):
+    user = user_dict[call.message.chat.id]
+    user.model = call.data
     markup = types.InlineKeyboardMarkup()
-    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Устройство: Xiaomi')
+    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Xiaomi')
     if call.data == 'xiaomi mi':
         _8 = types.InlineKeyboardButton(text='8', callback_data='146')
         _8se = types.InlineKeyboardButton(text='8SE', callback_data='148')
@@ -306,7 +306,7 @@ def phone_xiaomi(call):
         a3 = types.InlineKeyboardButton(text='A3', callback_data='2')
         _9t = types.InlineKeyboardButton(text='(9T', callback_data='2')
         _10t = types.InlineKeyboardButton(text='10T', callback_data='2')
-        markup.add(_8, _8se, _8ee, _8_lite, _9, _9se, _9_lite, _9_pro, _10, note_10, note_10_pro, note_10_lite, _10_pro,
+        markup.add(_8, _8se, _8_lite, _9, _9se, _9_lite, _9_pro, _10, note_10, note_10_pro, note_10_lite, _10_pro,
                    _10_ultra, _10i, _10_lite, _11, _11_pro, _11_ultra, _11i, _11_lite, max_2, max_3, mix, mix_2, mix_2s,
                    mix_3, a1, a2, a2_lite, a3, _9t, _10t, back)
     elif call.data == 'xiaomi redmi':
@@ -377,8 +377,11 @@ def phone_xiaomi(call):
                               reply_markup=markup)
 @bot.callback_query_handler(func=lambda call: call.data.startswith('galaxy'))
 def phone_samsung_galaxy(call):
+    user = user_dict[call.message.chat.id]
+    user.model = call.data
+    print(call.data)
     photo = open(f'cartinios/{call.data}.jpg', 'rb')
-    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Устройство Samsung')
+    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Samsung')
     markup = types.InlineKeyboardMarkup()
     if call.data == 'galaxy a':
         a6 = types.InlineKeyboardButton(text='A6', callback_data='33')
@@ -466,9 +469,11 @@ def phone_samsung_galaxy(call):
                            message_id=call.message.message_id, reply_markup=markup)
 @bot.callback_query_handler(func=lambda call: call.data.startswith('huawei '))
 def phone_huawei(call):
+    user = user_dict[call.message.chat.id]
+    user.model = call.data
     # photo = open(f'cartinios\\{call.data}.jpg', 'rb')
     markup = types.InlineKeyboardMarkup()
-    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Устройство Huawei')
+    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Huawei')
     if call.data == 'huawei honor':
         _6a = types.InlineKeyboardButton(text='6A', callback_data='huawei')
         _6cpro = types.InlineKeyboardButton(text='6c pro', callback_data='huawei nova')
@@ -707,13 +712,16 @@ def anwer(call):
                          'Код else. Щось не те')
 @bot.callback_query_handler(func=lambda call: True)
 def func_order(call):
-    check = user_dict2[call.message.chat.id]
+
+    check = user_dict[call.message.chat.id]
 
     user = user_dict[call.message.chat.id]
     model_nubmer = [str(i) for i in range(sheet.max_row)]  # Проходим по максимальному количеству строк
     problem_letter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']
     A = 'A'
+    print(call.data)
     if call.data in model_nubmer:  # Прилетает номер модели
+        print(user.model)
         photo = open(f'cartinios/{call.data}.jpg', 'rb')
         user.model = call.data
         user.money = 0  # обнуляем баланс
@@ -742,7 +750,7 @@ def func_order(call):
         user.money += price  # пополнение кошелька
         problem = sheet[user.problem + '1'].value  # = Название ремонта
         markup = types.InlineKeyboardMarkup(row_width=1)
-        confirm = types.InlineKeyboardButton(text='Далее', callback_data='confirm')
+        confirm = types.InlineKeyboardButton(text='Далее➡️', callback_data='confirm')
         back = types.InlineKeyboardButton(text='⬅️Назад', callback_data=user.model)
         # if user.problem != 'D':  # отображаем дополнительную кнопку замена аккумулятора
         #     battery = types.InlineKeyboardButton(
@@ -760,36 +768,31 @@ def func_order(call):
         model = sheet[A + user.model].value
         price_battery = sheet['D' + user.model].value
         markup1 = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        back = types.InlineKeyboardButton(text='⬅️Назад', callback_data=user.model)
         contact = types.KeyboardButton('Отправить свой контакт / подтвердить заказ', request_contact=True)
-        markup.add(back)
         markup1.add(contact)
         bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
                                message_id=call.message.message_id)
-        bot.send_message(call.message.chat.id,
-                                   f'{user.phone} {model}\n{problem} {price} грн\n\nИтого: {user.money} грн\n\nДля подтверждения заявки, пожалуйста, поделитесь совим номером телефонас помощью кнопки отправки контакта',
-                                   reply_markup=markup1)
-        # msg = bot.send_message(call.message.chat.id, 'Для подтверждения заявки, пожалуйста, поделитесь совим номером телефона', reply_markup=markup1)
-    elif call.data == 'write':
-        bot.edit_message_text('Мы поличили ваш заказ❕\nМы вам напишем📝\n\n/start', chat_id=call.message.chat.id, message_id=call.message.id)
-        bot.send_message(manager, 'Написать в телеграм')
-        bot.send_message(manager, '-------------------------------------------------------------------')
-    elif call.data == 'call':
-        bot.edit_message_text('Мы поличили вашг заказ❕\nМы вам позвоним📞\n\n/start', chat_id=call.message.chat.id, message_id=call.message.id)
-        bot.send_message(manager, 'Позвонить')
-        bot.send_message(manager, '-------------------------------------------------------------------')
+        bot.send_message(call.message.chat.id, f"{user.phone} {model}:\n{problem} {price} грн\n\nРазом: {user.money} грн\n\nДля підтвердження замовлення, будь ласка, поділіться своїм номером телефона за допомогою кнопки відправки контакту", reply_markup=markup1)
+    # кэлбеки для добаления кнопок с выбором связи удобной для клиента после оформления заказа
+    # elif call.data == 'write':
+    #     bot.edit_message_text('Ми отримали ваше замовлення❕\nМы вам напишемо📝', chat_id=call.message.chat.id, message_id=call.message.id)
+    #     bot.send_message(manager, 'Написати в телеграм', reply_markup=types.ReplyKeyboardRemove())
+    #     bot.send_message(manager, f'{user.model}-------------------------------------')
+    # elif call.data == 'call':
+    #     bot.edit_message_text('Ми отримали ваше замовлення❕\nМы вам зателефонуємо📞', chat_id=call.message.chat.id, message_id=call.message.id, reply_markup=None)
+    #     bot.send_message(manager, 'Позвонити')
+    #     bot.send_message(manager, f'{user.model}-------------------------------------')
     elif call.data == 'no':
         check.model = None #стираем модель введеную пользователем
         bot.delete_message(call.message.chat.id, call.message.message_id)
         bot.delete_message(call.message.chat.id, call.message.message_id-1)
     elif call.data == 'yes':
         bot.edit_message_text(f'Ваш телефон "{check.model}"?', chat_id=call.message.chat.id, message_id=call.message.id)
-        bot.send_message(call.message.chat.id, f'Пожалуйста коротко опишите проблему с вашим устройством {check.model} одним сообщением')
+        bot.send_message(call.message.chat.id, f'Будь ласка коротко опишіть проблему з вашим пристроєм {check.model} одним повiдомленням')
 
 @bot.message_handler(content_types=['contact'])
 def order_conact(message):
-    check = user_dict2[message.chat.id]  # открыл словарь проверки
+    check = user_dict[message.chat.id]  # открыл словарь проверки
     user = user_dict[message.chat.id]
 
     markup = types.InlineKeyboardMarkup(row_width=2)   #клавитаура с выбором удобной связи
@@ -813,10 +816,7 @@ def order_conact(message):
         model = sheet['A' + user.model].value
         price = sheet[user.problem + user.model].value
         order = f'{user.phone} {model}:\n➕ {problem} {price} грн\n\nИтого: {user.money} грн'
-
-        bot.edit_message_text(f'Устройство: {user.model} 📱 \n\n🛠 {user.problem}\nДля того чтобы отправить запрос менеджеру, поделитесь номером телефона нажав кнопкку "Подтвердить". Или отправте контакт',chat_id=message.chat.id,
-                              message_id=message.id-1)
-        bot.send_message(message.chat.id,   f'Ваш заказ сформирован. Мы свяжемся с вами в ближайшее время. Спасибо!\n\n{order}', reply_markup=markup)
+        bot.send_message(message.chat.id,   f"Ваше замовлення сформоване. Ми зв'яжемося з вами найближчим часом. Дякую!\n\n{order}", reply_markup=types.ReplyKeyboardRemove())
 
         bot.send_message(manager, f'Новый заказ от {contact_name}\nНомер телефона: {contact}\n\n{order}')
 
