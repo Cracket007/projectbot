@@ -22,7 +22,26 @@ class User:
         self.castom = False
 user_dict = {}
 
-manager = 455284316
+group = os.getenv('ID_CHANNEL')
+manager = os.getenv('ID_CHANNEL') # os.getenv('MANGER')
+
+@bot.message_handler(commands=['help'])
+def help(message):
+    bot.send_message(message.chat.id, "/help - виводить список команд із поясненнями\n\n/chat_manager введіть цю команду, щоб написати менеджеру безпосередньо (на відповідь може знадобитися час)"
+                                      "\n\n/status_order(у розробці) якщо вже залишили пристрій на ремонт і хочете дізнатися про статус ремонту. Буває 5 етапів: -новий; -чекає запчастини; -в роботі; -готовий; -відмова"
+                                      "\n\n/give_feedback залишити відгук/враження якщо користувалися нашими послугами. Відкликання через бота ніде публікуватися не буде, його побачать лише керівники проекту.")
+@bot.message_handler(commands=['chat_manager'])
+def chat_manager(message):
+    bot.send_message(message.chat.id, "Напишiть менеджеру безпосередньо @GeniusMob55 (на відповідь може знадобитися час). \n\nРобочi години:\nПн-Пт з 10:00 до 18:00\nСб-Нд з 10:00 до 16:00")
+
+@bot.message_handler(commands=['status_order'])
+def status_order(message):
+    bot.send_message(message.chat.id, "(у розробці) якщо вже залишили пристрій на ремонт і хочете дізнатися про статус ремонту. Буває 5 етапів: -новий; -чекає запчастини; -в роботі; -готовий; -відмова")
+
+@bot.message_handler(commands=['give_feedback'])
+def give_feedback(message):
+    bot.send_message(message.chat.id, "Залишити відгук/враження якщо користувалися нашими послугами. Відкликання через бота ніде публікуватися не буде, його побачать лише керівники проекту.\n\n    Залиште фiтбек у вiдповiдь на це повiдомлення")
+
 @bot.message_handler(commands=['start'])
 def start(message):
     user_dict[message.chat.id] = User(message.text)  # создал словарь проверки
@@ -37,14 +56,10 @@ def start(message):
     murkup.add(consultation, broken)
     privet = '<b>Я бот сервісного центру з ремонту смартфонів у Одесі!</b>\n\n<b>За моєю допомогою можна:</b>\n\n-Отримати консультацію та дізнатися вартість ремонту пристрою\n-Оформити заявку на ремонт\n\nДля консультації з менеджером залиште заявку на ремонт'
     bot.send_message(message.chat.id, privet, reply_markup=murkup, parse_mode='html')
-    print(message.chat.id)
 @bot.message_handler(content_types=['text'])
 def text(message):
-    # try:
+    try:
         check = user_dict[message.chat.id]
-        print(check.model)
-        print(message.text)
-        print(check.castom)
         if message.text.lower() == 'ремонт':
             user_dict[message.chat.id] = User(check)
             check.model = None
@@ -142,6 +157,8 @@ def text(message):
             no = types.InlineKeyboardButton(text='Нет', callback_data='no')
             markup.add(yes, no)
             bot.send_message(message.chat.id, f'Ваш телефон "{check.model}"?', reply_markup=markup)
+    except:
+        bot.send_message(message.chat.id, "Почнiть с команди /start")
 
 
 
@@ -691,27 +708,29 @@ def func_order(call):
             markup.add(broken, connector, sound, battery, other, back)
             bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
                                    message_id=call.message.message_id, reply_markup=markup)
-
+#на случай если надо будет продавать дополнительную услугу
             # bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id + 1, text=f'{user.phone} {model}')
+        # elif call.data in problem_letter:  # Прилетает буква проблемы
+        #     photo = open(f'cartinios/{call.data}.jpg', 'rb')
+        #     user.problem = call.data
+        #     model = sheet[A + user.model].value  # = Название модели телефона
+        #     price = sheet[user.problem + user.model].value
+        #     user.money = price  # пополнение кошелька
+        #     problem = sheet[user.problem + '1'].value  # = Название ремонта
+        #     markup = types.InlineKeyboardMarkup(row_width=1)
+        #     confirm = types.InlineKeyboardButton(text='Далее➡️', callback_data='confirm')
+        #     back = types.InlineKeyboardButton(text='⬅️Назад', callback_data=user.model)
+        #     # if user.problem != 'D':  # отображаем дополнительную кнопку замена аккумулятора
+        #     #     battery = types.InlineKeyboardButton(
+        #     #         text=str(sheet['D1'].value) + str(sheet['D' + user.model].value) + ' грн',
+        #     #         callback_data='confirm_battery')
+        #     #    markup.add(battery)
+        #     markup.add(confirm, back)
+        #     bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
+        #                            message_id=call.message.message_id, reply_markup=markup)
         elif call.data in problem_letter:  # Прилетает буква проблемы
-            photo = open(f'cartinios/{call.data}.jpg', 'rb')
+            print(call.data)
             user.problem = call.data
-            model = sheet[A + user.model].value  # = Название модели телефона
-            price = sheet[user.problem + user.model].value
-            user.money = price  # пополнение кошелька
-            problem = sheet[user.problem + '1'].value  # = Название ремонта
-            markup = types.InlineKeyboardMarkup(row_width=1)
-            confirm = types.InlineKeyboardButton(text='Далее➡️', callback_data='confirm')
-            back = types.InlineKeyboardButton(text='⬅️Назад', callback_data=user.model)
-            # if user.problem != 'D':  # отображаем дополнительную кнопку замена аккумулятора
-            #     battery = types.InlineKeyboardButton(
-            #         text=str(sheet['D1'].value) + str(sheet['D' + user.model].value) + ' грн',
-            #         callback_data='confirm_battery')
-            #    markup.add(battery)
-            markup.add(confirm, back)
-            bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
-                                   message_id=call.message.message_id, reply_markup=markup)
-        elif call.data.startswith('confirm'):
             photo = open('cartinios/confirm.jpg', 'rb')
             battery = sheet['D1'].value
             problem = sheet[user.problem + '1'].value
@@ -760,5 +779,8 @@ def order_conact(message):
             bot.send_message(manager, f'Новый заказ от {contact_name}\nНомер телефона: {contact}\n\n{order}')
     except TypeError:
         bot.send_message(message.chat.id, 'Спочатку оформiть заявку:\n - Натистiть, або напишiть "Ремонт" боту\n - Просто вiдправте модель свого смартфону боту потiм опишiть проблему')
+        bot.send_message(group, f'{name}\n{contact}')
+    except:
+        bot.send_message(message.chat.id, "Почнiть с команди /start")
 
 bot.polling(none_stop=True)
