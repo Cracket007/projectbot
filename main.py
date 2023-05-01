@@ -231,7 +231,7 @@ def func_phone(call):
         markup.add(iph_6s, iph_6s_plus, iph_7, iph_7_Plus, iph_8, iph_8_plus, iph_x, iph_xs, iph_xs_max, iph_xr, iph_11,
                    iph_11_pro, iph_11_pro_max, iph_12_mini, iph_12, iph_12_pro, iph_12_pro_max, iph_13_mini, iph_13,
                    iph_13_pro, iph_13_pro_max, back)
-    #elif call.data == 'Пристрiй Oppo':
+    elif call.data == 'Пристрiй Oppo':
 
     bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)  # отправил фото с клавиатурой
 
@@ -437,11 +437,11 @@ def phone_samsung_galaxy(call):
         markup.add(m01, m01_core, m10, m11, m20, m21, m30s, m31, m31s, m51, back)
     bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
                            message_id=call.message.message_id, reply_markup=markup)
-@bot.callback_query_handler(func=lambda call: call.data.startswith('huawei '))
+@bot.callback_query_handler(func=lambda call: call.data.startswith('huawei'))
 def phone_huawei(call):
     user = user_dict[call.message.chat.id]
     user.model = call.data
-    # photo = open(f'cartinios\\{call.data}.jpg', 'rb')
+    photo = open(f'cartinios\\{call.data}.jpg', 'rb')
     markup = types.InlineKeyboardMarkup()
     back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Huawei')
     if call.data == 'huawei honor':
@@ -548,7 +548,16 @@ def phone_huawei(call):
         _20se = types.InlineKeyboardButton(text='dddddddddd', callback_data='huawei')
         z_5g = types.InlineKeyboardButton(text='20 SE', callback_data='huawei')
         markup.add(_8, _9, _10, _10plus, _10s, _9e, _20_5g, _20plus, _20pro, _20se, z_5g, back)
-    bot.send_message(call.message.chat.id, 'трenkqehuq wnqcwhcfhupcn upwchuucquicgu', reply_markup=markup)
+    bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id,
+                           message_id=call.message.message_id, reply_markup=markup)
+@bot.callback_query_handler(func=lambda call: call.data.startswith('oppo'))
+def phone_huawei(call):
+    user = user_dict[call.message.chat.id]
+    user.model = call.data
+    photo = open(f'cartinios\\{call.data}.jpg', 'rb')
+    markup = types.InlineKeyboardMarkup()
+    back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Huawei')
+    if call.data == 'huawei honor':
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('consultation'))
 def anwer(call):
@@ -621,7 +630,8 @@ def anwer(call):
                               message_id=call.message.message_id,
                               text='Не фен, не батарея вам не допоможе, максимум сухі серветки. Вологу потрібно не просто видалити з пристрою, а й очистити всі висохші залишки від неї, так як вони можуть замикати елементи і смартфон вийде з ладу з часом')
         bot.send_message(call.from_user.id,
-                         'Зверніться в найближчий сервісний центр для виконання чищення смартфона. Дізнатися, де найближчий можна в довіднику 2Гіс. До нас їхати займе час, а вологу потрібно усунути максимально швидко\n\n/start')
+                         'Зверніться в найближчий сервісний центр для виконання чищення смартфона. Дізнатися, де найближчий можна за допомою  google maps. До нас їхати займе час, а вологу потрібно усунути максимально швидко\n\n/start')
+
     elif call.data == 'consultation_buggy':
         item_next = types.InlineKeyboardButton(text='Далі', callback_data='consultation_buggy_next1')
         markup.add(item_next)
@@ -631,7 +641,6 @@ def anwer(call):
                               text='Що робити, якщо телефон зависає?\n[Причини зависання техніки](https://teletype.in/@andrei_iph/P_-KoDBU2Sr)', parse_mode='markdown')
         bot.send_message(call.message.chat.id, 'Щоб залишити заявку на заміну програмного забезпечення вашого пристрою, напишіть боту "ремонт" та вкажіть модель вашого телефону.\n\n/start')
 
-
     elif call.data == 'consultation_broken_option1':
         item_next = types.InlineKeyboardButton(text='Далi', callback_data='consultation_buggy_next1')
         markup.add(item_next)
@@ -640,8 +649,6 @@ def anwer(call):
                               text='Якщо трапилось так, що екран вашого смартфона постраждав - не засмучуйтеся, ми допоможемо вам це виправити у найкоротші терміни')
         bot.send_message(call.message.chat.id, 'У випадку, коли телефон має тріщини, а картинка залишилась без дефектів, смартфон можна відновити, тим самим заощадити кошти. '
                                                '    \nДетальніше про сепарацію модуля ви можете дізнатися у менеджера @GeniusMob55')
-
-
     elif call.data == 'consultation_broken_option2':
 
         bot.send_message(call.message.chat.id, '    Якщо після удару, навіть невеликого, у вас повністю сгас екран це означає, що або відштовхнувся шлейф дисплея всередині від плати, або мікротріщина на самій матриці дисплея. Детальнішу інформацію можна уточнити у нашого менеджера @GeniusMob55')
