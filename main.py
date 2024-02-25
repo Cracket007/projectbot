@@ -7,10 +7,9 @@ import os
 book = openpyxl.open('price.xlsx', read_only=True)
 sheet = book.active
 
-load_dotenv()
+load_dotenv('config.env.env')
 api_token = os.getenv('API_TOKEN')
 bot = telebot.TeleBot(api_token)
-
 class User:
     def __init__(self, phone):
         self.phone = phone
@@ -233,7 +232,7 @@ def func_phone(call):
                    iph_13_pro, iph_13_pro_max, back)
     elif call.data == 'Пристрiй Oppo':
 
-    bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)  # отправил фото с клавиатурой
+        bot.edit_message_media(media=types.InputMedia(type='photo', media=photo), chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)  # отправил фото с клавиатурой
 
 
 
@@ -557,7 +556,7 @@ def phone_huawei(call):
     photo = open(f'cartinios\\{call.data}.jpg', 'rb')
     markup = types.InlineKeyboardMarkup()
     back = types.InlineKeyboardButton(text='⬅️Назад', callback_data='Пристрiй Huawei')
-    if call.data == 'huawei honor':
+    #if call.data == 'huawei honor':
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('consultation'))
 def anwer(call):
